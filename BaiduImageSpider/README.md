@@ -1,11 +1,4 @@
-2018/9/1
-新的学期，学习下python,体验下为什么这么火
-##1 HelloWorld
-test print('Hello World')
-##2 Python实现3D建模工具
-从[实验楼](https://www.shiyanlou.com/courses/561)上了解到该项目代码
-作者是 Erick，Erick从事电子游戏，3D特效软件，CAD软件的开发。详细介绍及说明见[《500 lines or less》](http://aosabook.org/en/500L/a-3d-modeller.html)
-##3 BaiduImageSpider
+# BaiduImageSpider
 百度图片爬虫，基于python3
 
 个人学习开发用
@@ -21,7 +14,7 @@ test print('Hello World')
 python index.py
 ```
 
-### 博客
+# 博客
 
 [爬虫总结](http://www.jwlchina.cn/2016/02/06/python%E7%99%BE%E5%BA%A6%E5%9B%BE%E7%89%87%E7%88%AC%E8%99%AB/)
 
