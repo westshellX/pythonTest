@@ -1,6 +1,7 @@
 2018/9/1
 新的学期，学习下python,体验下为什么这么火
-##1 HelloWorld
+##1 helloCosplay
+download image
 test print('Hello World')
 ##2 Python实现3D建模工具
 从[实验楼](https://www.shiyanlou.com/courses/561)上了解到该项目代码
