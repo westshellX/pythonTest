@@ -11,10 +11,10 @@ import sys
 
 class Mz:
     def __init__(self):
-        self.url = 'https://aoishigure.com'
+        self.url = 'https://www.baidu.com'
         self.headers = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36', 
-        'Referer': 'https://aoishigure.com/'
+        'Referer': 'https://www.baidu.com'
         }
         self.req = requests.session()
         self.all_a = []
