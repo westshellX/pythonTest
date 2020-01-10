@@ -5,6 +5,7 @@ import json
 import time
 import csv
 import requests
+import codecs
 from requests.adapters import HTTPAdapter
 from twitterscraper import query_tweets_from_user
 
@@ -88,11 +89,11 @@ def main():
             with open(outPutFileName,"w",encoding="utf-8") as output:
                 writer = csv.writer(output)
                 writer.writerow([
-                            "video_url", "reply_to_users"
+                            "text_html","img_url","video_url", "links"
                         ])
                 for t in list_of_tweets:
                     writer.writerow([
-                        t.video_url,t.reply_to_users
+                        t.text_html,t.img_urls,t.video_url,t.links
                     ])
                     for imgUrl in t.img_urls:
                         download_one_file(user,'img',imgUrl)
