@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1062
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "testS57Map", "helloWorld\testS57Map.pyproj", "{A3C4450D-3059-48C9-B64E-5A6A40A6F0FD}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "readingAndWritingVectorData", "readingAndWritingVectorData\readingAndWritingVectorData.pyproj", "{16D6EC6A-B7A3-48AE-B9DA-7B89330DA39A}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "FilteringDataWithOGR", "FilteringDataWithOGR\FilteringDataWithOGR.pyproj", "{B8163677-3ED8-4064-8645-AC2A84FD44A6}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "6_ManipulatingWithOGR", "6_ManipulatingWithOGR\6_ManipulatingWithOGR.pyproj", "{366E1761-C545-4A9F-9245-0BFC1A3CE8E7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A3C4450D-3059-48C9-B64E-5A6A40A6F0FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3C4450D-3059-48C9-B64E-5A6A40A6F0FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{16D6EC6A-B7A3-48AE-B9DA-7B89330DA39A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{16D6EC6A-B7A3-48AE-B9DA-7B89330DA39A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8163677-3ED8-4064-8645-AC2A84FD44A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8163677-3ED8-4064-8645-AC2A84FD44A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{366E1761-C545-4A9F-9245-0BFC1A3CE8E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{366E1761-C545-4A9F-9245-0BFC1A3CE8E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AD92C8DB-2688-4C76-A372-5A6993E59226}
+	EndGlobalSection
+EndGlobal
