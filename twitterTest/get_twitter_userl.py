@@ -7,8 +7,17 @@ import csv
 import requests
 import codecs
 from requests.adapters import HTTPAdapter
+def proxySet():
+	#本机代理设置
+	#全局代理
+	s=requests.Session()
+	s.proxies.update({'http://127.0.0.1':'1080'})
+proxySet()
+s=requests.Session()
+print(s.proxies)
+print('-----------------------------------------------------------------------------')
 from twitterscraper import query_tweets_from_user
-
+from twitterscraper.ts_logger import logger
 def validate_config(config):
     # 验证user_id_list
     user_id_list = config['user_id_list']
@@ -67,8 +76,8 @@ def download_one_file(userName,fileType,url):
         print('Error: ', e)
         traceback.print_exc() 
 
-        
 def main():
+    logger.info({'Hello world':'1'})
     try:
         config_path=os.path.split(os.path.realpath(__file__))[0]+os.sep+ 'config.json'
         if not os.path.isfile(config_path) :
@@ -76,7 +85,7 @@ def main():
         with open(config_path) as f:
             config = json.loads(f.read())
         validate_config(config)
-        
+        print('hello world')
         user_id_list = config['user_id_list']
         if not isinstance(user_id_list, list):
             if not os.path.isabs(user_id_list):
@@ -104,6 +113,7 @@ def main():
     except Exception as e:
         print('Error: ',e)
         traceback.print_exe()
+
 
 if __name__ == '__main__':
     main()
