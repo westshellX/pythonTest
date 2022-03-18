@@ -1,38 +1,68 @@
-from ctypes import *
 import ctypes
-from ctypes.wintypes import POINT
-from operator import truediv
-from pickle import TRUE
-from platform import win32_edition
+#匹配数据结构
+'''typedef struct VRCustomCmdData
+{
+	CHAR	szCmd[256];
+}VR_CUSTOM_CMDDATA,*LPVR_CUSTOM_CMDDATA;'''
 
-from pyparsing import Char
-print(windll.kernel32)
-print(cdll.kernel32)
-#兼容的结构
-'''
+
 class VR_CUSTOM_CMDDATA(ctypes.Structure):
     _fields_=[
-        ('szCmd',ctypes.c_char_p),
+        ('szCmd',ctypes.c_char*256),
     ]
-cd=VR_CUSTOM_CMDDATA()
-cd.szCmd=ctypes.create_string_buffer(256)
-print(cd.szCmd)
-print(len(cd.szCmd))
-print(cd.szCmd)
-'''
-print(__doc__)
-VRCom=cdll.LoadLibrary('.\VRCom.dll')
-print(VRCom)
-print('------------------------------------------------')
-#匹配函数名
+'''struct DynamicShipBase{
+	long	nMMSI;
+	double	x,y,z,p,r;			//船舶六自由度姿态信息(世界空间坐标) 单位为米
+	double	c,v,gc,gv,rot; 		//分别表示航向(度)、航速（节＝海里/小时）、对地航向、对地航速、转向率(转/分钟)
+	double  tc,mroll, proll, mpitch, ppitch;
+	double  vroll, vpitch;// vz;
+};'''
+class DynamicShipBase(ctypes.Structure):
+    _fields_=[
+        ('nMMSI',ctypes.c_long),
+        ('x',ctypes.c_double),
+        ('y',ctypes.c_double),
+        ('z',ctypes.c_double),
+        ('p',ctypes.c_double),
+        ('r',ctypes.c_double),
+        ('c',ctypes.c_double),
+        ('v',ctypes.c_double),
+        ('gc',ctypes.c_double),
+        ('gv',ctypes.c_double),
+        ('rot',ctypes.c_double),
+        ('tc',ctypes.c_double),
+        ('mroll',ctypes.c_double),
+        ('proll',ctypes.c_double),
+        ('mpitch',ctypes.c_double),
+        ('ppitch',ctypes.c_double),
+        ('vroll',ctypes.c_double),
+        ('vpitch',ctypes.c_double)
+    ]
+#加载VRCom.dll
+VRCom=ctypes.cdll.LoadLibrary('.\VRCom.dll')
+
+#匹配常用函数名
 AutoAll_RunDll=VRCom.AutoAll_RunDll
+
 InitVRCom=getattr(VRCom,"?InitVRCom@@YA_NXZ")
+
 ClearVRCom=getattr(VRCom,"?ClearVRCom@@YAXXZ")
+
 PopupCommandStrSvr2Clt=getattr(VRCom,"?PopupCommandStrSvr2Clt@@YA_NAAUVRCustomCmdData@@@Z")
-PopupCommandStrSvr2Clt.argtypes=[ctypes.c_char_p]
-cmdStr=ctypes.create_string_buffer(256)
+PopupCommandStrSvr2Clt.argtypes=[ctypes.POINTER(VR_CUSTOM_CMDDATA)]
+
+GetDynamShipList=getattr(VRCom,"?GetDynamShipList@@YAPAUDynamicShipBase@@AAKPA_K@Z")
+GetDynamShipList.argtypes=[ctypes.POINTER(ctypes.c_ulong),ctypes.POINTER(ctypes.c_ulonglong)]
+GetDynamShipList.restype =ctypes.POINTER(DynamicShipBase)
+
+LockDynamShipList=getattr(VRCom,"?LockDynamShipList@@YAXXZ")
+
+UnlockDynamShipList=getattr(VRCom,"?UnlockDynamShipList@@YAXXZ")
+
 CreateClient=getattr(VRCom,"?CreateClient@@YAPAXXZ")
-print(InitVRCom)
+
+CreateSever=getattr(VRCom,"?CreateServer@@YAPAXXZ")
+
 print('------------------------------------------------')
 '''
 YNet=cdll.LoadLibrary('D:/cppProjects/YNet/YNet.dll')
@@ -40,12 +70,30 @@ print('------------------------------------------------')
 print(YNet)
 print('------------------------------------------------')
 '''
+
+#运行测试
 InitVRCom()
 CreateClient()
-index=0
-while TRUE:
+
+#cmdStr=ctypes.create_string_buffer(256)
+cmdStr=VR_CUSTOM_CMDDATA()
+while 1:
     while PopupCommandStrSvr2Clt(cmdStr):
-        print(cmdStr)
-        print(cmdStr[0:255])
-        index+=1
+        print(cmdStr.szCmd)
+        #print(cmdStr[0:255])
+    m_nVSLCnt=ctypes.c_ulong(0)
+    #print(m_nVSLCnt.value)
+    #print('*****************************************************************')
+    if(cmdStr.szCmd==b'G\n'):
+        lpElapsedTime=ctypes.c_ulonglong(0)
+        m_pVSL=ctypes.POINTER(DynamicShipBase)
+        LockDynamShipList()
+        m_pVSL=GetDynamShipList(ctypes.byref(m_nVSLCnt),ctypes.byref(lpElapsedTime))
+        if(m_nVSLCnt.value>0):
+            shipIndex=0
+            print(m_pVSL[shipIndex].nMMSI,m_pVSL[shipIndex].x,m_pVSL[shipIndex].y,m_pVSL[shipIndex].c)
+        UnlockDynamShipList()
+    #print('*****************************************************************')
+    elif(cmdStr.szCmd==b'H\n'):
+        index=0
 ClearVRCom()
