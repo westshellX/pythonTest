@@ -44,20 +44,20 @@ YNet=ctypes.cdll.LoadLibrary('.\YNet.dll')
 #匹配常用函数名
 AutoAll_RunDll=YNet.AutoAll_RunDll
 
-InitYNet=getattr(YNet,"?InitYNet@@YA_NXZ")
+InitYNet=getattr(YNet,"?InitNet@@YA_NXZ")
 
-ClearYNet=getattr(YNet,"?ClearYNet@@YAXXZ")
+ClearYNet=getattr(YNet,"?ClearNet@@YAXXZ")
 
-PopupCommandStrSvr2Clt=getattr(YNet,"?PopupCommandStrSvr2Clt@@YA_NAAUVRCustomCmdData@@@Z")
+PopupCommandStrSvr2Clt=getattr(YNet,"?PopupStr2Clt@@YA_NAAUCustomCmdData@@@Z")
 PopupCommandStrSvr2Clt.argtypes=[ctypes.POINTER(VR_CUSTOM_CMDDATA)]
 
-GetDynamShipList=getattr(YNet,"?GetDynamShipList@@YAPAUDynamicShipBase@@AAKPA_K@Z")
+GetDynamShipList=getattr(YNet,"?GetShipList@@YAPAUShip_Base@@AAKPA_K@Z")
 GetDynamShipList.argtypes=[ctypes.POINTER(ctypes.c_ulong),ctypes.POINTER(ctypes.c_ulonglong)]
 GetDynamShipList.restype =ctypes.POINTER(DynamicShipBase)
 
-LockDynamShipList=getattr(YNet,"?LockDynamShipList@@YAXXZ")
+LockDynamShipList=getattr(YNet,"?LockShipList@@YAXXZ")
 
-UnlockDynamShipList=getattr(YNet,"?UnlockDynamShipList@@YAXXZ")
+UnlockDynamShipList=getattr(YNet,"?UnlockShipList@@YAXXZ")
 
 CreateClient=getattr(YNet,"?CreateClient@@YAPAXXZ")
 
