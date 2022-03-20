@@ -62,7 +62,10 @@ UnlockDynamShipList=getattr(YNet,"?UnlockShipList@@YAXXZ")
 CreateClient=getattr(YNet,"?CreateClient@@YAPAXXZ")
 
 CreateSever=getattr(YNet,"?CreateServer@@YAPAXXZ")
-
+__all__=[
+    "InitYNet","CreateClient",'PopupCommandStrSvr2Clt','LockDynamShipList',
+    'UnlockDynamShipList','GetDynamShipList'
+    ]
 print('------------------------------------------------')
 '''
 YNet=cdll.LoadLibrary('D:/cppProjects/YNet/YNet.dll')
