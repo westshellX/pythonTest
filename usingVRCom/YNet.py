@@ -44,9 +44,9 @@ YNet=ctypes.cdll.LoadLibrary('.\YNet.dll')
 #匹配常用函数名
 AutoAll_RunDll=YNet.AutoAll_RunDll
 
-InitYNet=getattr(YNet,"?InitNet@@YA_NXZ")
+InitVRCom=getattr(YNet,"?InitNet@@YA_NXZ")
 
-ClearYNet=getattr(YNet,"?ClearNet@@YAXXZ")
+ClearVRCom=getattr(YNet,"?ClearNet@@YAXXZ")
 
 PopupCommandStrSvr2Clt=getattr(YNet,"?PopupStr2Clt@@YA_NAAUCustomCmdData@@@Z")
 PopupCommandStrSvr2Clt.argtypes=[ctypes.POINTER(VR_CUSTOM_CMDDATA)]
@@ -62,41 +62,8 @@ UnlockDynamShipList=getattr(YNet,"?UnlockShipList@@YAXXZ")
 CreateClient=getattr(YNet,"?CreateClient@@YAPAXXZ")
 
 CreateSever=getattr(YNet,"?CreateServer@@YAPAXXZ")
+
 __all__=[
-    "InitYNet","CreateClient",'PopupCommandStrSvr2Clt','LockDynamShipList',
-    'UnlockDynamShipList','GetDynamShipList'
+    "InitVRCom","CreateClient",'PopupCommandStrSvr2Clt','LockDynamShipList',
+    'UnlockDynamShipList','GetDynamShipList','VR_CUSTOM_CMDDATA','ClearVRCom','DynamicShipBase'
     ]
-print('------------------------------------------------')
-'''
-YNet=cdll.LoadLibrary('D:/cppProjects/YNet/YNet.dll')
-print('------------------------------------------------')
-print(YNet)
-print('------------------------------------------------')
-'''
-
-#运行测试
-InitYNet()
-CreateClient()
-
-#cmdStr=ctypes.create_string_buffer(256)
-cmdStr=VR_CUSTOM_CMDDATA()
-while 1:
-    while PopupCommandStrSvr2Clt(cmdStr):
-        print(cmdStr.szCmd)
-        #print(cmdStr[0:255])
-    m_nVSLCnt=ctypes.c_ulong(0)
-    #print(m_nVSLCnt.value)
-    #print('*****************************************************************')
-    if(cmdStr.szCmd==b'G\n'):
-        lpElapsedTime=ctypes.c_ulonglong(0)
-        m_pVSL=ctypes.POINTER(DynamicShipBase)
-        LockDynamShipList()
-        m_pVSL=GetDynamShipList(ctypes.byref(m_nVSLCnt),ctypes.byref(lpElapsedTime))
-        if(m_nVSLCnt.value>0):
-            shipIndex=0
-            print(m_pVSL[shipIndex].nMMSI,m_pVSL[shipIndex].x,m_pVSL[shipIndex].y,m_pVSL[shipIndex].c)
-        UnlockDynamShipList()
-    #print('*****************************************************************')
-    elif(cmdStr.szCmd==b'H\n'):
-        index=0
-ClearYNet()

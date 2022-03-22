@@ -63,37 +63,7 @@ CreateClient=getattr(VRCom,"?CreateClient@@YAPAXXZ")
 
 CreateSever=getattr(VRCom,"?CreateServer@@YAPAXXZ")
 
-print('------------------------------------------------')
-'''
-YNet=cdll.LoadLibrary('D:/cppProjects/YNet/YNet.dll')
-print('------------------------------------------------')
-print(YNet)
-print('------------------------------------------------')
-'''
-
-#运行测试
-InitVRCom()
-CreateClient()
-
-#cmdStr=ctypes.create_string_buffer(256)
-cmdStr=VR_CUSTOM_CMDDATA()
-while 1:
-    while PopupCommandStrSvr2Clt(cmdStr):
-        print(cmdStr.szCmd)
-        #print(cmdStr[0:255])
-    m_nVSLCnt=ctypes.c_ulong(0)
-    #print(m_nVSLCnt.value)
-    #print('*****************************************************************')
-    if(cmdStr.szCmd==b'G\n'):
-        lpElapsedTime=ctypes.c_ulonglong(0)
-        m_pVSL=ctypes.POINTER(DynamicShipBase)
-        LockDynamShipList()
-        m_pVSL=GetDynamShipList(ctypes.byref(m_nVSLCnt),ctypes.byref(lpElapsedTime))
-        if(m_nVSLCnt.value>0):
-            shipIndex=0
-            print(m_pVSL[shipIndex].nMMSI,m_pVSL[shipIndex].x,m_pVSL[shipIndex].y,m_pVSL[shipIndex].c)
-        UnlockDynamShipList()
-    #print('*****************************************************************')
-    elif(cmdStr.szCmd==b'H\n'):
-        index=0
-ClearVRCom()
+__all__=[
+    "InitVRCom","CreateClient",'PopupCommandStrSvr2Clt','LockDynamShipList',
+    'UnlockDynamShipList','GetDynamShipList','VR_CUSTOM_CMDDATA','ClearVRCom','DynamicShipBase'
+    ]

@@ -20,14 +20,16 @@ import serial.tools.list_ports
 SerialRxEvent, EVT_SERIALRX = wx.lib.newevent.NewEvent()
 #SERIALRX = wx.NewEventType()
 
-class MyDialog(wx.Dialog):
+
+class ComDialog(wx.Dialog):
     def __init__(self, *args, **kwds):
 
         #线程开始标志
         self.alive = threading.Event()
         self.thread = None
 
-        # begin wxGlade: MyDialog.__init__
+        # Content of this block not found. Did you rename this class?
+        # begin wxGlade: ComDialog.__init__
         kwds["style"] = kwds.get("style", 0) | wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
         wx.Dialog.__init__(self, *args, **kwds)
         self.SetTitle("Com")
@@ -82,19 +84,35 @@ class MyDialog(wx.Dialog):
         sizer_3 = wx.BoxSizer(wx.VERTICAL)
         sizer_1.Add(sizer_3, 1, 0, 0)
 
-        self.text_ctrl_receive = wx.TextCtrl(self, wx.ID_ANY, "", style=wx.TE_MULTILINE)
+        self.text_ctrl_receive = wx.TextCtrl(self, wx.ID_ANY, "", style=wx.TE_MULTILINE | wx.TE_READONLY)
         self.text_ctrl_receive.SetMinSize((206, 100))
         sizer_3.Add(self.text_ctrl_receive, 0, wx.EXPAND, 0)
 
-        self.Clear = wx.Button(self, wx.ID_CANCEL, "")
-        sizer_3.Add(self.Clear, 0, wx.ALIGN_RIGHT, 0)
+        self.button_clear = wx.Button(self, wx.ID_ANY, "Clear")
+        sizer_3.Add(self.button_clear, 0, wx.ALIGN_RIGHT, 0)
 
         self.text_ctrl_send = wx.TextCtrl(self, wx.ID_ANY, "")
         sizer_3.Add(self.text_ctrl_send, 0, wx.EXPAND, 0)
 
-        self.Send = wx.Button(self, wx.ID_OK, "")
-        self.Send.SetDefault()
-        sizer_3.Add(self.Send, 0, wx.ALIGN_RIGHT, 0)
+        self.button_send = wx.Button(self, wx.ID_ANY, "Send")
+        sizer_3.Add(self.button_send, 0, wx.ALIGN_RIGHT, 0)
+
+        sizer_3.Add((230, 20), 0, 0, 0)
+
+        sizer_5 = wx.GridSizer(2, 2, 0, 0)
+        sizer_3.Add(sizer_5, 1, wx.EXPAND, 0)
+
+        label_1 = wx.StaticText(self, wx.ID_ANY, "AIS:")
+        sizer_5.Add(label_1, 0, wx.ALIGN_CENTER, 0)
+
+        self.text_ctrl_aisInfo = wx.TextCtrl(self, wx.ID_ANY, "", style=wx.TE_READONLY)
+        sizer_5.Add(self.text_ctrl_aisInfo, 0, wx.EXPAND, 0)
+
+        label_7 = wx.StaticText(self, wx.ID_ANY, "GPS:")
+        sizer_5.Add(label_7, 0, wx.ALIGN_CENTER, 0)
+
+        self.text_ctrl_gpsInfo = wx.TextCtrl(self, wx.ID_ANY, "", style=wx.TE_READONLY)
+        sizer_5.Add(self.text_ctrl_gpsInfo, 0, wx.EXPAND, 0)
 
         self.SetSizer(sizer_1)
         sizer_1.Fit(self)
@@ -102,6 +120,8 @@ class MyDialog(wx.Dialog):
         self.Layout()
 
         self.Bind(wx.EVT_BUTTON, self.OnButtonOpenFuction, self.button_open)
+        self.Bind(wx.EVT_BUTTON, self.OnClear, self.button_clear)
+        self.Bind(wx.EVT_BUTTON, self.OnSend, self.button_send)
         # end wxGlade
         
         #绑定接收数据事件与处理方法
@@ -258,14 +278,31 @@ class MyDialog(wx.Dialog):
             self.alive.clear()          # clear alive event for thread
             self.thread.join()          # wait until thread has finished
             self.thread = None
+    def OnSend(self, event):  # wxGlade: MyDialog.<event_handler>
+        if(self.text_ctrl_send.IsEmpty()):
+            return
+
+        print(self.text_ctrl_send.GetValue())
+        if(self.serial.is_open):
+            self.serial.write(self.text_ctrl_send.GetValue().encode('UTF-8', 'replace'))
+
+    def OnClear(self, event):  # wxGlade: MyDialog.<event_handler>
+        self.text_ctrl_receive.Clear()
+        
+    def OnButtonOpenFuction(self, event):  # wxGlade: ComDialog.<event_handler>
+         print("Event handler 'OnButtonOpenFuction' not implemented!")
+         event.Skip()
+    def OnClear(self, event):  # wxGlade: ComDialog.<event_handler>
+         print("Event handler 'OnClear' not implemented!")
+         event.Skip()
+    def OnSend(self, event):  # wxGlade: ComDialog.<event_handler>
+         print("Event handler 'OnSend' not implemented!")
+         event.Skip()
 # end of class MyDialog
 
 class MyApp(wx.App):
     def OnInit(self):
-        ser = serial.Serial()
-        print(ser)
-
-        self.dialog = MyDialog(None, wx.ID_ANY, "")
+        self.dialog = ComDialog(None, wx.ID_ANY, "")
         self.SetTopWindow(self.dialog)
         self.dialog.ShowModal()
         self.dialog.Destroy()
