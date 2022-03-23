@@ -5,10 +5,13 @@
 #
 
 import threading
+from numpy import true_divide
 import wx
 import wx.lib.newevent
 import serial
 import serial.tools.list_ports
+from YNet import *
+import ctypes
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -27,6 +30,11 @@ class ComDialog(wx.Dialog):
         #线程开始标志
         self.alive = threading.Event()
         self.thread = None
+
+        #VR运行线程
+        self.vrThread= threading.Thread(target=self.vrRunThread)
+        self.vrThread.setDaemon(1)
+        self.vrThread.start()
 
         # Content of this block not found. Did you rename this class?
         # begin wxGlade: ComDialog.__init__
@@ -249,6 +257,37 @@ class ComDialog(wx.Dialog):
                 '''
             wx.PostEvent(self, SerialRxEvent(data=b))
             print(b)
+    def vrRunThread(self):
+
+        print('VRThread running')
+        cmdStr=VR_CUSTOM_CMDDATA()
+        isShipMachineRun=False
+        #线程需要一直运行
+        while 1:
+            while PopupCommandStrSvr2Clt(cmdStr):
+                print(cmdStr.szCmd)
+            
+            #显示出来便于观察
+                self.text_ctrl_receive.AppendText(cmdStr.szCmd)
+                if(cmdStr.szCmd==b'G\n'):
+                    isShipMachineRun=True
+                if(cmdStr.szCmd==b'H \n'):
+                    isShipMachineRun=False
+                
+            if isShipMachineRun:
+                m_nVSLCnt=ctypes.c_ulong(0)
+                lpElapsedTime=ctypes.c_ulonglong(0)
+                m_pVSL=ctypes.POINTER(DynamicShipBase)
+                LockDynamShipList()
+
+                m_pVSL=GetDynamShipList(ctypes.byref(m_nVSLCnt),ctypes.byref(lpElapsedTime))
+                if(m_nVSLCnt.value>0):
+                        shipIndex=0
+                        shipStateInfoStr='%d,%f,%f,%f'%(m_pVSL[shipIndex].nMMSI,m_pVSL[shipIndex].x,m_pVSL[shipIndex].y,m_pVSL[shipIndex].c)
+                        self.text_ctrl_receive.AppendText(shipStateInfoStr)
+                        self.ProcessShipDataToAIS(m_pVSL[shipIndex])
+                UnlockDynamShipList()
+
     #串口接收数据线程
     def StartThread(self):
         """Start the receiver thread"""
@@ -288,16 +327,9 @@ class ComDialog(wx.Dialog):
 
     def OnClear(self, event):  # wxGlade: MyDialog.<event_handler>
         self.text_ctrl_receive.Clear()
-        
-    def OnButtonOpenFuction(self, event):  # wxGlade: ComDialog.<event_handler>
-         print("Event handler 'OnButtonOpenFuction' not implemented!")
-         event.Skip()
-    def OnClear(self, event):  # wxGlade: ComDialog.<event_handler>
-         print("Event handler 'OnClear' not implemented!")
-         event.Skip()
-    def OnSend(self, event):  # wxGlade: ComDialog.<event_handler>
-         print("Event handler 'OnSend' not implemented!")
-         event.Skip()
+    
+    def ProcessShipDataToAIS(self,shipData):
+        print(shipData.nMMSI,shipData.x)
 # end of class MyDialog
 
 class MyApp(wx.App):
@@ -311,5 +343,11 @@ class MyApp(wx.App):
 # end of class MyApp
 
 if __name__ == "__main__":
+    #运行测试
+    InitVRCom()
+    CreateClient()
+
     app = MyApp(0)
     app.MainLoop()
+
+    ClearVRCom()
