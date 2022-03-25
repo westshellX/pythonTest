@@ -109,21 +109,25 @@ print(len(AllPortCentLL))
 for portKey in AllPortCentLL.keys():
     print(AllPortCentLL[portKey])
 '''
-currentPortNo=0
+'''currentPortNo=0
 def getCurrentPortNo()->int:
     return currentPortNo
 def setCurrentPortNo(portNo):
-    currentPortNo=portNo
-def shipPosXToLongitue(xValue)->float:
+	currentPortNo=portNo
+	portNoStr='PortNo: {0}'.format(currentPortNo)
+	print(portNoStr)
+'''
+#转化精确度已经和控制台（Instructor)基本保持一致了
+def shipPosXToLongitue(xValue,currentPortNo=0)->float:
     #角度转换成弧度
-    RAD=3.141592654/180.0
-    longitue=xValue/60.0/math.cos(AllPortCentLL[currentPortNo][0]*RAD)+AllPortCentLL[currentPortNo][1]
-    print(longitue)
-    return longitue
-
-def shipPosYToLattitude(yValue)->float:
-    lattitude=yValue/60.0+AllPortCentLL[currentPortNo][0]
-    return lattitude
+	RAD=3.141592654/180.0
+	longitue=xValue/60.0/math.cos(AllPortCentLL[currentPortNo][0]*RAD)+AllPortCentLL[currentPortNo][1]
+	#longitue=xValue/60.0+AllPortCentLL[currentPortNo][1]
+	return longitue
+#转化精确度已经和控制台（Instructor)基本保持一致了
+def shipPosYToLattitude(yValue,currentPortNo=0)->float:
+	lattitude=yValue/60.0+AllPortCentLL[currentPortNo][0]
+	return lattitude
 
 def isShipBaseInfoValid(shipData)->bool:
 	return False
