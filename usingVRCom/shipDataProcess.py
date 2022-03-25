@@ -1,5 +1,6 @@
 import math
 
+
 '''
 double CentLL[45][2]={
 		28.000000,122.200000,                     //0 公海
@@ -123,3 +124,28 @@ def shipPosXToLongitue(xValue)->float:
 def shipPosYToLattitude(yValue)->float:
     lattitude=yValue/60.0+AllPortCentLL[currentPortNo][0]
     return lattitude
+
+def isShipBaseInfoValid(shipData)->bool:
+	return False
+
+'''	
+	#/小心驶得万年船
+	if (shipData.c <= DBL_MAX or shipData.c >= -DBL_MAX)
+		return False
+	if (osg::isNaN(shipData.p) || !(shipData.p <= DBL_MAX && shipData.p >= -DBL_MAX))
+		shipData.p = 0;
+	if (osg::isNaN(shipData.r) || !(shipData.r <= DBL_MAX && shipData.r >= -DBL_MAX))
+		shipData.r = 0;
+
+	if (osg::isNaN(shipData.mroll) || !(shipData.mroll <= DBL_MAX && shipData.mroll >= -DBL_MAX))
+		shipData.mroll = 0;
+
+	if (osg::isNaN(shipData.proll) || !(shipData.proll <= DBL_MAX && shipData.proll >= -DBL_MAX))
+		shipData.proll = 0;
+
+	if (osg::isNaN(shipData.mpitch) || !(shipData.mpitch <= DBL_MAX && shipData.mpitch >= -DBL_MAX))
+		shipData.mpitch = 0;
+
+	if (osg::isNaN(shipData.ppitch) || !(shipData.ppitch <= DBL_MAX && shipData.ppitch >= -DBL_MAX))
+		shipData.ppitch = 0;
+'''
