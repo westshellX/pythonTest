@@ -117,15 +117,59 @@ def setCurrentPortNo(portNo):
 	portNoStr='PortNo: {0}'.format(currentPortNo)
 	print(portNoStr)
 '''
+#角度转换成弧度
+RAD=0.01745329251994  #3.141592654/180.0
+
 #转化精确度已经和控制台（Instructor)基本保持一致了
 def shipPosXToLongitue(xValue,currentPortNo=0)->float:
-    #角度转换成弧度
-	RAD=3.141592654/180.0
 	longitue=xValue/60.0/math.cos(AllPortCentLL[currentPortNo][0]*RAD)+AllPortCentLL[currentPortNo][1]
 	#longitue=xValue/60.0+AllPortCentLL[currentPortNo][1]
 	return longitue
 #转化精确度已经和控制台（Instructor)基本保持一致了
 def shipPosYToLattitude(yValue,currentPortNo=0)->float:
+	#lattitude=LLatLat(yValue/60.0+AllPortCentLL[currentPortNo][0])
+	#return lattitude
+	return yValue/60.0+AllPortCentLL[currentPortNo][0]
+
+E=0.081813369       #sqrt((1-6356863.0/6378245.0)*(1+6356863.0/6378245.0)) //地球扁率
+PI=3.14159265359    #//(atan(1.0)*4)
+DEG=57.29577951308  #//(180/pi)
+#由纬度渐长率求纬度 2004-02-11 gkp
+def LLatLat(llat)->float:
+	i=0
+	if (llat>0):
+		i=1
+	else:
+		i=-1
+	u=0.0
+	p=0.0
+	Lat0=0.0
+	Lat=10.0  #可以保证先执行一遍循环
+	llat0=math.fabs(llat)
+	df=math.exp(llat0/60*RAD)
+	while(math.fabs(Lat-Lat0)>0.000001):
+		Lat0 = Lat
+		u = E * math.sin(Lat0)
+		p = (1 + u) / (1 - u)
+		p = pow(p,E/2)
+		p = p * df
+		Lat = (math.atan(p) - PI / 4) * 2
+	return Lat*DEG *i
+
+
+#转化精确度已经和控制台（Instructor)基本保持一致了
+def shipPosXToLattitue(xValue,currentPortNo=0)->float:
+	lattitude=xValue/60.0+AllPortCentLL[currentPortNo][0]
+	return lattitude
+
+	longitue=xValue/60.0/math.cos(AllPortCentLL[currentPortNo][0]*RAD)+AllPortCentLL[currentPortNo][1]
+	#longitue=xValue/60.0+AllPortCentLL[currentPortNo][1]
+	return longitue
+#转化精确度已经和控制台（Instructor)基本保持一致了
+def shipPosYToLongitue(yValue,currentPortNo=0)->float:
+	longitue=yValue/60.0/math.cos(AllPortCentLL[currentPortNo][0]*RAD)+AllPortCentLL[currentPortNo][1]
+	return longitue
+
 	lattitude=yValue/60.0+AllPortCentLL[currentPortNo][0]
 	return lattitude
 
