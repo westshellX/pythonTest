@@ -47,14 +47,19 @@ class ComDialog(wx.Dialog):
         #Socket
         self.aisSocket=None
 
+        self.portNo=0
+        
+        #主本船舶
+        self.osShipID=1
+
         # Content of this block not found. Did you rename this class?
         # begin wxGlade: ComDialog.__init__
         kwds["style"] = kwds.get("style", 0) | wx.DEFAULT_DIALOG_STYLE
         wx.Dialog.__init__(self, *args, **kwds)
-        self.SetSize((644, 461))
+        self.SetSize((787, 557))
         self.SetTitle("Com")
 
-        sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_1 = wx.FlexGridSizer(1, 2, 0, 0)
 
         sizer_4 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, u"串口设置"), wx.VERTICAL)
         sizer_1.Add(sizer_4, 1, wx.FIXED_MINSIZE, 0)
@@ -117,7 +122,7 @@ class ComDialog(wx.Dialog):
         sizer_4.Add(self.button_send, 0, wx.ALIGN_RIGHT, 0)
 
         sizer_3 = wx.BoxSizer(wx.VERTICAL)
-        sizer_1.Add(sizer_3, 1, 0, 0)
+        sizer_1.Add(sizer_3, 1, wx.EXPAND, 0)
 
         sizer_8 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "VRComData"), wx.VERTICAL)
         sizer_3.Add(sizer_8, 1, wx.EXPAND, 0)
@@ -163,7 +168,7 @@ class ComDialog(wx.Dialog):
         label_8 = wx.StaticText(self, wx.ID_ANY, "Port:")
         grid_sizer_1.Add(label_8, 0, wx.ALIGN_CENTER, 0)
 
-        self.text_ctrl_sockPort = wx.TextCtrl(self, wx.ID_ANY, "3333")
+        self.text_ctrl_sockPort = wx.TextCtrl(self, wx.ID_ANY, "3356")
         grid_sizer_1.Add(self.text_ctrl_sockPort, 0, 0, 0)
 
         self.button_socket = wx.Button(self, wx.ID_ANY, "StartSocket\n")
@@ -184,6 +189,7 @@ class ComDialog(wx.Dialog):
 
         sizer_2.AddGrowableCol(1)
 
+        sizer_1.AddGrowableCol(1)
         self.SetSizer(sizer_1)
 
         self.Layout()
@@ -320,8 +326,9 @@ class ComDialog(wx.Dialog):
         cmdStr=szCmd.decode('utf-8')
         #python中没有switch 语句的用法
         cmdFirstChar=cmdStr[0]
+        print(cmdStr)
         #需要使用正则表达式来提取数字
-        validNum=re.findall(r"\d+\.?\d*",cmdStr)
+        validNum=re.findall(r"-?\d+\.?\d*",cmdStr)
         if(cmdFirstChar=='A'):
 		#if (sscanf(str, "A%d,%lf,%lf,%lf,%lf,%d,%d,%d\n", &ship_id, &yy, &xx, &cc, &vv, &ship_type, &mm, &ss) != 8)
             if(len(validNum)!=8):
@@ -334,13 +341,15 @@ class ComDialog(wx.Dialog):
             ship_type=int(validNum[5])
             mm=int(validNum[6])
             ss=int(validNum[7])
-
             shipData=DynamicShipBase
             shipData.x=xx
             shipData.y=yy
             shipData.c=cc
             shipData.nMMSI=ship_id
-            self.ProcessShipDataToAIS(shipData)
+            isOS=False
+            if(ship_id==self.osShipID):
+                isOS=True
+            self.ProcessShipDataToAIS(shipData,isOS)
 
         elif(cmdFirstChar=='G'):
             self.isShipMachineRun=True
@@ -359,9 +368,20 @@ class ComDialog(wx.Dialog):
             cc=float(validNum[4])
             vv=float(validNum[5])
             test_no=int(validNum[6])
-            shipDataProcess.setCurrentPortNo(port_id)
+            self.portNo=port_id
+
+            shipData=DynamicShipBase
+            shipData.x=xx
+            shipData.y=yy
+            shipData.c=cc
+            #主本船从0开始
+            shipData.nMMSI=self.osShipID
+            self.ProcessShipDataToAIS(shipData,True)
+
     def vrRunThread(self):
 
+        #最大船舶数量
+        SHIPMAX=200
         print('VRThread running')
         cmdStr=VR_CUSTOM_CMDDATA()
         #线程需要一直运行
@@ -373,21 +393,24 @@ class ComDialog(wx.Dialog):
             if self.isShipMachineRun:
                 m_nVSLCnt=ctypes.c_ulong(0)
                 lpElapsedTime=ctypes.c_ulonglong(0)
-                m_pVSL=ctypes.POINTER(DynamicShipBase)
+                #m_pVSL=ctypes.POINTER(DynamicShipBase)
                 LockDynamShipList()
 
                 m_pVSL=GetDynamShipList(ctypes.byref(m_nVSLCnt),ctypes.byref(lpElapsedTime))
-                print(lpElapsedTime.value)
                 
                 #转化成秒
                 timeSecond=float(lpElapsedTime.value/1000.0)
                 if(timeSecond<100.0 and m_nVSLCnt.value>0):
+                    print(m_nVSLCnt.value)
                     for shipIndex in range(m_nVSLCnt.value):
-                        #shipIndex=0
-                        shipStateInfoStr='%d,%f,%f,%f'%(m_pVSL[shipIndex].nMMSI,m_pVSL[shipIndex].x,m_pVSL[shipIndex].y,m_pVSL[shipIndex].c)
-                        self.text_ctrl_dynamicShipData.AppendText(shipStateInfoStr)
-                        self.ProcessShipDataToAIS(m_pVSL[shipIndex])
-                
+                        if(m_pVSL[shipIndex].nMMSI>0 and m_pVSL[shipIndex].nMMSI<SHIPMAX):
+                            isOS=False
+                            #print('shipIndex={} nMMSI={}'.format(shipIndex,m_pVSL[shipIndex].nMMSI))
+                            if(m_pVSL[shipIndex].nMMSI==self.osShipID):
+                                isOS=True
+                            shipStateInfoStr='%d,%f,%f,%f'%(m_pVSL[shipIndex].nMMSI,m_pVSL[shipIndex].x,m_pVSL[shipIndex].y,m_pVSL[shipIndex].c)
+                            self.text_ctrl_dynamicShipData.AppendText(shipStateInfoStr)
+                            self.ProcessShipDataToAIS(m_pVSL[shipIndex],isOS)
                 UnlockDynamShipList()
 
                 #控制下速度，没必要太快
@@ -423,12 +446,18 @@ class ComDialog(wx.Dialog):
             self.thread.join()          # wait until thread has finished
             self.thread = None        
     
-    def ProcessShipDataToAIS(self,shipData):
+    def ProcessShipDataToAIS(self,shipData,isOS=False):
         #还需要判断shipData数据的有效性
-        print(shipData.nMMSI,shipData.x)
-        shipLat=shipDataProcess.shipPosYToLattitude(shipData.y)
-        shipLong=shipDataProcess.shipPosXToLongitue(shipData.x)
-        aisInfoStr=encodeDictTest.encodeDict(shipData.c,shipLat,shipLong,shipData.nMMSI,1)
+        shipLong=shipDataProcess.shipPosXToLongitue(shipData.x,self.portNo)
+        shipLat=shipDataProcess.shipPosYToLattitude(shipData.y,self.portNo)
+        shipLatInt=int(shipLat)
+        shipLatMini=(shipLat-shipLatInt)*60.0
+        shipLongInt=int(shipLong)
+        shipLongMini=(shipLong-shipLongInt)*60.0
+        print('ship{}\'s XYPos({},{}) LongLat in AIS:{} {}\',{} {}\''.format(shipData.nMMSI,shipData.x,shipData.y,shipLongInt,shipLongMini,shipLatInt,shipLatMini))
+        portPosStr='{0} {1} {2}'.format(shipDataProcess.AllPortCentLL[self.portNo][0],shipDataProcess.AllPortCentLL[self.portNo][1],shipDataProcess.AllPortCentLL[self.portNo][2])
+        print(portPosStr)
+        aisInfoStr=encodeDictTest.encodeDict(shipData.c,shipLat,shipLong,shipData.nMMSI,1,isOS)
         print(aisInfoStr)
         self.text_ctrl_aisInfo.AppendText(aisInfoStr)
 
