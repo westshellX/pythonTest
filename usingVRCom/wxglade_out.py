@@ -457,7 +457,7 @@ class ComDialog(wx.Dialog):
         print('ship{}\'s XYPos({},{}) LongLat in AIS:{} {}\',{} {}\''.format(shipData.nMMSI,shipData.x,shipData.y,shipLongInt,shipLongMini,shipLatInt,shipLatMini))
         portPosStr='{0} {1} {2}'.format(shipDataProcess.AllPortCentLL[self.portNo][0],shipDataProcess.AllPortCentLL[self.portNo][1],shipDataProcess.AllPortCentLL[self.portNo][2])
         print(portPosStr)
-        aisInfoStr=encodeDictTest.encodeDict(shipData.c,shipLat,shipLong,shipData.nMMSI,1,isOS)
+        aisInfoStr=encodeDictTest.encodeDict(shipData.v,shipData.c,shipData.c,shipLat,shipLong,shipData.nMMSI,1,isOS)
         print(aisInfoStr)
         self.text_ctrl_aisInfo.AppendText(aisInfoStr)
 
