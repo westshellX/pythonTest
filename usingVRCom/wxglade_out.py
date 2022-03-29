@@ -529,6 +529,16 @@ class ComDialog(wx.Dialog):
 
 class MyApp(wx.App):
     def OnInit(self):
+        #获取实例名称
+        self.name = "%s-%s" % (self.GetAppName(), wx.GetUserId())
+        print(self.name)
+        ##要检测的实例
+        self.instance = wx.SingleInstanceChecker(self.name)
+        ##查看实例是否已经运行，如果已经运行则初始化失败退出
+        if self.instance.IsAnotherRunning():
+            wx.MessageBox(u"VRCom已经在运行了！",u"提示")
+            return False
+
         self.dialog = ComDialog(None, wx.ID_ANY, "")
         self.SetTopWindow(self.dialog)
         self.dialog.ShowModal()
