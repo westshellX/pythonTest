@@ -171,7 +171,7 @@ class ComDialog(wx.Dialog):
         self.text_ctrl_sockPort = wx.TextCtrl(self, wx.ID_ANY, "3356")
         grid_sizer_1.Add(self.text_ctrl_sockPort, 0, 0, 0)
 
-        self.button_socket = wx.Button(self, wx.ID_ANY, "StartSocket\n")
+        self.button_socket = wx.Button(self, wx.ID_ANY, "StartSocket")
         grid_sizer_1.Add(self.button_socket, 0, wx.ALIGN_RIGHT, 0)
 
         sizer_6.Add((20, 20), 0, wx.EXPAND, 0)
