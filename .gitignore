@@ -6,3 +6,6 @@
 /usingVRCom/.vscode
 /usingVRCom/wxglade_out.py.bak
 /usingVRCom/ComDlg.wxg.bak
+/usingVRCom/__pycache__
+/usingVRCom/build
+/usingVRCom/dist
