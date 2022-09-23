@@ -7,6 +7,11 @@ import numpy as np
 import time
 from VRCom import *
 import ctypes
+
+#最大船舶数量
+SHIPMAX=200
+osShipID=1
+
 def showShipDataFigure(figurePlot,shipData):
     figurePlot.plot(shipData.x,shipData.y)
 def on_close(event):
@@ -87,6 +92,29 @@ def DoNetStrFromShipMachine(szCmd):
             #主本船从0开始
             # shipDatnMMSI=osShipID
             # self.ProcessShipDataToAIS(shipData,True)
+
+        if (isShipMachineRun==True):
+                m_nVSLCnt=ctypes.c_ulong(0)
+                lpElapsedTime=ctypes.c_ulonglong(0)
+                #m_pVSL=ctypes.POINTER(DynamicShipBase)
+                LockDynamShipList()
+
+                m_pVSL=GetDynamShipList(ctypes.byref(m_nVSLCnt),ctypes.byref(lpElapsedTime))
+                
+                #转化成秒
+                timeSecond=float(lpElapsedTime.value/1000.0)
+                if(timeSecond<100.0 and m_nVSLCnt.value>0):
+                    print(m_nVSLCnt.value)
+                    for shipIndex in range(m_nVSLCnt.value):
+                        if(m_pVSL[shipIndex].nMMSI>0 and m_pVSL[shipIndex].nMMSI<SHIPMAX):
+                            isOS=False
+                            #print('shipIndex={} nMMSI={}'.format(shipIndex,m_pVSL[shipIndex].nMMSI))
+                            if(m_pVSL[shipIndex].nMMSI==osShipID):
+                                isOS=True
+                            shipStateInfoStr='%d,%f,%f,%f'%(m_pVSL[shipIndex].nMMSI,m_pVSL[shipIndex].x,m_pVSL[shipIndex].y,m_pVSL[shipIndex].c)
+                            # self.text_ctrl_dynamicShipData.AppendText(shipStateInfoStr)
+                            # self.ProcessShipDataToAIS(m_pVSL[shipIndex],isOS)
+                UnlockDynamShipList()
 def update(frame):
     xdata.append(frame)
     ydata.append(np.sin(frame))
@@ -111,31 +139,6 @@ if __name__ == "__main__":
     #运行测试
     InitVRCom()
     CreateClient()
-
-    
-    # #最大船舶数量
-    # SHIPMAX=200
-    # osShipiID=1
-    # while True:
-    #     LockDynamShipList()
-
-    #     m_nVSLCnt=ctypes.c_ulong(0)
-    #     lpElapsedTime=ctypes.c_ulonglong(0)
-    #     m_pVSL=GetDynamShipList(ctypes.byref(m_nVSLCnt),ctypes.byref(lpElapsedTime))
-                
-    #             #转化成秒
-    #     timeSecond=float(lpElapsedTime.value/1000.0)
-    #     if(timeSecond<100.0 and m_nVSLCnt.value>0):
-    #         print(m_nVSLCnt.value)
-    #         for shipIndex in range(m_nVSLCnt.value):
-    #             if(m_pVSL[shipIndex].nMMSI>0 and m_pVSL[shipIndex].nMMSI<SHIPMAX):
-    #                 isOS=False
-    #                 #print('shipIndex={} nMMSI={}'.format(shipIndex,m_pVSL[shipIndex].nMMSI))
-    #                 if(m_pVSL[shipIndex].nMMSI==osShipID):
-    #                     isOS=True
-    #                     showShipDataFigure(m_pVSL[shipIndex])
-    #     UnlockDynamShipList()
-    #     time.sleep(0.5)
 
     ani=animation.FuncAnimation(fig,update,frames=np.linspace(0,2*np.pi,50),init_func=init,interval=30,blit=True)
     plt.show()
