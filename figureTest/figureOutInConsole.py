@@ -111,6 +111,11 @@ def DoNetStrFromShipMachine(szCmd):
                             #print('shipIndex={} nMMSI={}'.format(shipIndex,m_pVSL[shipIndex].nMMSI))
                             if(m_pVSL[shipIndex].nMMSI==osShipID):
                                 isOS=True
+
+                                #添加位置坐标值
+                                xdata.append(m_pVSL[shipIndex].x)
+                                ydata.append(m_pVSL[shipIndex].y)
+
                             shipStateInfoStr='%d,%f,%f,%f'%(m_pVSL[shipIndex].nMMSI,m_pVSL[shipIndex].x,m_pVSL[shipIndex].y,m_pVSL[shipIndex].c)
                             # self.text_ctrl_dynamicShipData.AppendText(shipStateInfoStr)
                             # self.ProcessShipDataToAIS(m_pVSL[shipIndex],isOS)
