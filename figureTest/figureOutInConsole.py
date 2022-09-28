@@ -94,6 +94,11 @@ def DoNetStrFromShipMachine(szCmd):
             #主本船从0开始
             # shipDatnMMSI=osShipID
             # self.ProcessShipDataToAIS(shipData,True)
+
+#数据产生方式
+def data_gen():
+    yield 1,1
+    
 def update(frame):
     xdata.append(frame)
     ydata.append(np.sin(frame))
