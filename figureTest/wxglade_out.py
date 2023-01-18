@@ -69,7 +69,6 @@ class MyDialog(wx.Dialog):
         self.Layout()
 
         self.Bind(wx.EVT_BUTTON, self.showOrHideFigure, self.button_show)
-        self.initFigureSet()
         # end wxGlade
 
     #开始接收数据
