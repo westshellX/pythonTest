@@ -24,5 +24,7 @@ sensor = PosSensor(pos, vel, noise_std=1)
 ps = np.array([sensor.read() for _ in range(50)])
 
 plot_measurements(ps[:, 0], ps[:, 1]);
+plt.show();
 print(ps)
+
 
