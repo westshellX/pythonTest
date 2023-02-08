@@ -1,10 +1,17 @@
+import os
 import sys
-#Kalman-and-Bayesian-Filters-in-Python
-sys.path.append("C:/Users/westshell_ASUS/Documents/pythonWork/Kalman-and-Bayesian-Filters-in-Python")
+print("Hello World!")
+print(os.getcwd())
 
-#
-sys.path.append("C:/Users/westshell_ASUS/Documents/pythonWork/pythonTest/filterpy")
+#针对Visual Studio Code，如果工作目录是pythonTest
+sys.path.append("../Kalman-and-Bayesian-Filters-in-Python")
+sys.path.append("../filterpy")
 
+'''
+#针对Visual Studio Code，如果工作目录是kalman
+sys.path.append("../../Kalman-and-Bayesian-Filters-in-Python")
+sys.path.append("../../filterpy")
+'''
 from numpy.random import randn
 
 class PosSensor(object):
