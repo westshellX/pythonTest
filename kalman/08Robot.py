@@ -80,16 +80,16 @@ zs = np.array([sensor.read() for _ in range(N)])
 robot_tracker = tracker1()
 mu=np.zeros((N, 4, 1))
 
-#muu,cov, _, _ = robot_tracker.batch_filter(zs)
-'''
+mu,cov, _, _ = robot_tracker.batch_filter(zs)
+
 for x, P in zip(mu, cov):
     # covariance of x and y
     cov = np.array([[P[0, 0], P[2, 0]], 
                     [P[0, 2], P[2, 2]]])
     mean = (x[0, 0], x[2, 0])
     plot_covariance_ellipse(mean, cov=cov, fc='g', std=3, alpha=0.5)
-'''
 
+'''
 for i in range(N):
     robot_tracker.predict()
     robot_tracker.update(zs[i])
@@ -98,6 +98,7 @@ for i in range(N):
     [robot_tracker.P_post[0,2],robot_tracker.P_post[2,2]]])
     plot_covariance_ellipse(mean, cov, fc='g', std=3, alpha=0.5)
     mu[i,:]=robot_tracker.x
+'''
 #plot results
 zs *= .3048 # convert to meters
 plot_filter(mu[:, 0], mu[:, 2])
