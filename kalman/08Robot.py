@@ -106,3 +106,178 @@ plot_measurements(zs[:, 0], zs[:, 1])
 plt.legend(loc=2)
 plt.xlim(0, 20);
 plt.show();
+
+print(robot_tracker.P)
+print(np.diag(robot_tracker.P))
+c=robot_tracker.P[0:2,0:2]
+print(c)
+plot_covariance_ellipse((0,0),cov=c,fc='g',alpha=0.2)
+plt.show();
+
+#Filter Order
+from kf_book.book_plots import plot_track
+
+class ConstantVelocityObject(object):
+    def __init__(self, x0=0, vel=1., noise_scale=0.06):
+        self.x = x0
+        self.vel = vel
+        self.noise_scale = noise_scale
+
+    def update(self):
+        self.vel += randn() * self.noise_scale
+        self.x += self.vel
+        return (self.x, self.vel)
+
+def sense(x, noise_scale=1.):
+    return x[0] + randn()*noise_scale
+
+np.random.seed(124)
+obj = ConstantVelocityObject()
+
+xs, zs = [], []
+for i in range(50):
+    x = obj.update()
+    z = sense(x)
+    xs.append(x)
+    zs.append(z)
+
+xs = np.asarray(xs)
+
+plot_track(xs[:, 0])
+plot_measurements(range(len(zs)), zs)
+plt.legend(loc='best');
+plt.show();
+
+def ZeroOrderKF(R, Q, P=20):
+    """ Create zero order Kalman filter.
+    Specify R and Q as floats."""
+    
+    kf = KalmanFilter(dim_x=1, dim_z=1)
+    kf.x = np.array([0.])
+    kf.R *= R
+    kf.Q *= Q
+    kf.P *= P
+    kf.F = np.eye(1)
+    kf.H = np.eye(1)
+    return kf
+def FirstOrderKF(R, Q, dt):
+    """ Create first order Kalman filter. 
+    Specify R and Q as floats."""
+    
+    kf = KalmanFilter(dim_x=2, dim_z=1)
+    kf.x = np.zeros(2)
+    kf.P *= np.array([[100, 0], [0, 1]])
+    kf.R *= R
+    kf.Q = Q_discrete_white_noise(2, dt, Q)
+    kf.F = np.array([[1., dt],
+                     [0., 1]])
+    kf.H = np.array([[1., 0]])
+    return kf
+def SecondOrderKF(R_std, Q, dt, P=100):
+    """ Create second order Kalman filter. 
+    Specify R and Q as floats."""
+    
+    kf = KalmanFilter(dim_x=3, dim_z=1)
+    kf.x = np.zeros(3)
+    kf.P[0, 0] = P
+    kf.P[1, 1] = 1
+    kf.P[2, 2] = 1
+    kf.R *= R_std**2
+    kf.Q = Q_discrete_white_noise(3, dt, Q)
+    kf.F = np.array([[1., dt, .5*dt*dt],
+                     [0., 1.,       dt],
+                     [0., 0.,       1.]])
+    kf.H = np.array([[1., 0., 0.]])
+    return kf
+def simulate_system(Q, count):
+    obj = ConstantVelocityObject(x0=.0, vel=0.5, noise_scale=Q)
+    xs, zs = [], []
+    for i in range(count):
+        x = obj.update()
+        z = sense(x)
+        xs.append(x)
+        zs.append(z)
+    return np.array(xs), np.array(zs)
+from filterpy.common import Saver
+
+def filter_data(kf, zs):
+    s = Saver(kf)
+    kf.batch_filter(zs, saver=s)
+    s.to_array()
+    return s
+from kf_book.book_plots import plot_kf_output
+
+R, Q = 1, 0.03
+xs, zs = simulate_system(Q=Q, count=50)
+
+kf = FirstOrderKF(R, Q, dt=1)
+data1 = filter_data(kf, zs)
+
+plot_kf_output(xs, data1.x, data1.z)
+
+from kf_book.book_plots import plot_residual_limits, set_labels
+
+def plot_residuals(xs, data, col, title, y_label, stds=1):
+    res = xs - data.x[:, col]
+    plt.plot(res)
+    plot_residual_limits(data.P[:, col, col], stds)
+    set_labels(title, 'time (sec)', y_label)
+
+plot_residuals(xs[:, 0], data1, 0, 
+               title='First Order Position Residuals(1$\sigma$)',
+               y_label='meters')  
+plt.show(); 
+plot_residuals(xs[:, 1], data1, 1, 
+               title='First Order Velocity Residuals(1$\sigma$)',
+               y_label='meters/sec')  
+plt.show();
+
+kf0 = ZeroOrderKF(R, Q)
+data0 = filter_data(kf0, zs)
+plot_kf_output(xs, data0.x, data0.z);
+plot_residuals(xs[:, 0], data0, 0, 
+               title='Zero Order Position Residuals(3$\sigma$)',
+               y_label='meters',
+               stds=3);
+plt.show();
+
+kf2 = SecondOrderKF(R, Q, dt=1)
+data2 = filter_data(kf2, zs)
+plot_kf_output(xs, data2.x, data2.z);
+res2 = xs[:, 0] - data2.x[:, 0]
+res1 = xs[:, 0] - data1.x[:, 0]
+
+plt.plot(res2, label='order 2')
+plt.plot(res1, ls="--", label='order 1')
+plot_residual_limits(data2.P[:, 0, 0])
+set_labels('Second Order Position Residuals',
+           'meters', 'time (sec)')
+plt.legend();
+plt.show();
+
+res2 = xs[:, 1] - data2.x[:, 1]
+res1 = xs[:, 1] - data1.x[:, 1]
+
+plt.plot(res2, label='order 2')
+plt.plot(res1, ls='--', label='order 1')
+plot_residual_limits(data2.P[:, 1, 1])
+set_labels('Second Order Velocity Residuals', 
+                      'meters/sec', 'time (sec)')
+plt.legend();
+plt.show();
+
+kf2 = SecondOrderKF(R, 0, dt=1)
+data2 = filter_data(kf2, zs)
+plot_kf_output(xs, data2.x, data2.z)
+
+np.random.seed(25944)
+xs500, zs500 = simulate_system(Q=Q, count=500)
+
+kf2 = SecondOrderKF(R, 0, dt=1)
+data500 = filter_data(kf2, zs500)
+
+plot_kf_output(xs500, data500.x, data500.z)
+plot_residuals(xs500[:, 0], data500, 0, 
+               'Second Order Position Residuals',
+               'meters') ;
+plt.show();            
