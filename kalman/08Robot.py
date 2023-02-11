@@ -280,4 +280,79 @@ plot_kf_output(xs500, data500.x, data500.z)
 plot_residuals(xs500[:, 0], data500, 0, 
                'Second Order Position Residuals',
                'meters') ;
-plt.show();            
+plt.show();       
+
+np.random.seed(32594)
+xs2000, zs2000 = simulate_system(Q=0.0001, count=2000)
+
+kf2 = SecondOrderKF(R, 0, dt=1)
+data2000 = filter_data(kf2, zs2000)
+
+plot_kf_output(xs2000, data2000.x, data2000.z)
+plot_residuals(xs2000[:, 0], data2000, 0, 
+               'Second Order Position Residuals',
+               'meters') 
+plt.show();
+
+class ConstantAccelerationObject(object):
+    def __init__(self, x0=0, vel=1., acc=0.1, acc_noise=.1):
+        self.x = x0
+        self.vel = vel
+        self.acc = acc
+        self.acc_noise_scale = acc_noise
+    
+    def update(self):
+        self.acc += randn() * self.acc_noise_scale       
+        self.vel += self.acc
+        self.x += self.vel
+        return (self.x, self.vel, self.acc)
+  
+R, Q = 6., 0.02
+def simulate_acc_system(R, Q, count):
+    obj = ConstantAccelerationObject(acc_noise=Q)
+    zs = []
+    xs = []
+    for i in range(count):
+        x = obj.update()
+        z = sense(x, R)
+        xs.append(x)
+        zs.append(z)
+    return np.asarray(xs), zs
+
+np.random.seed(124)
+xs, zs = simulate_acc_system(R=R, Q=Q, count=80)
+plt.plot(xs[:, 0]);
+plt.plot(zs[:])
+plt.show();
+
+np.random.seed(124)
+xs, zs = simulate_acc_system(R=R, Q=Q, count=80)
+
+kf2 = SecondOrderKF(R, Q, dt=1)
+data2 = filter_data(kf2, zs)
+
+plot_kf_output(xs, data2.x, data2.z, aspect_equal=False)
+plot_residuals(xs[:, 0], data2, 0, 
+               'Second Order Position Residuals',
+               'meters')
+plt.show();
+
+kf3 = FirstOrderKF(R, Q * 10, dt=1)
+data3= filter_data(kf3, zs)
+
+plot_kf_output(xs, data3.x, data3.z, aspect_equal=False)
+plot_residuals(xs[:, 0], data3, 0, 
+               'First Order Position Residuals',
+               'meters') 
+plt.show();
+
+kf4 = FirstOrderKF(R, Q * 10000, dt=1)
+data4 = filter_data(kf4, zs)
+
+plot_kf_output(xs, data4.x, data4.z, aspect_equal=False)
+plot_residuals(xs[:, 0], data4, 0, 
+               'First Order Position Residuals',
+               'meters') 
+plt.show();
+
+#Exercise: State Variable Design
