@@ -457,3 +457,29 @@ print(f'mahalanobis distance = {m:.1f}');
 
 print(f'mahalanobis distance = {mahalanobis(x=[8.08, 7.7], mean=x, cov=P):.1f}')
 print(f'mahalanobis distance = {mahalanobis(x=[8.2, 7.65], mean=x, cov=P):.1f}')
+
+dt = 1.
+R = 3.
+kf = KalmanFilter(dim_x=2, dim_z=1, dim_u = 1)
+kf.P *= 10
+kf.R *= R
+kf.Q = Q_discrete_white_noise(2, dt, 0.1)
+kf.F = np.array([[1., 0], [0., 0.]])
+kf.B = np.array([[dt], [ 1.]])
+kf.H = np.array([[1., 0]])
+print(kf.P)
+
+zs = [i + randn()*R for i in range(1, 100)]
+xs = []
+cmd_velocity = np.array([1.])
+for z in zs:
+    kf.predict(u=cmd_velocity)
+    kf.update(z)
+    xs.append(kf.x[0])
+
+plt.plot(xs, label='Kalman Filter')
+plot_measurements(zs)
+plt.xlabel('time')
+plt.legend(loc=4)
+plt.ylabel('distance');
+plt.show();
