@@ -458,6 +458,7 @@ print(f'mahalanobis distance = {m:.1f}');
 print(f'mahalanobis distance = {mahalanobis(x=[8.08, 7.7], mean=x, cov=P):.1f}')
 print(f'mahalanobis distance = {mahalanobis(x=[8.2, 7.65], mean=x, cov=P):.1f}')
 
+#Control Inputs
 dt = 1.
 R = 3.
 kf = KalmanFilter(dim_x=2, dim_z=1, dim_u = 1)
