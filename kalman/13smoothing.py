@@ -108,3 +108,44 @@ plt.legend(loc=4)
 print(f'standard deviation fixed-lag: {np.mean(fls_res):.3f}')
 print(f'standard deviation kalman: {np.mean(kf_res):.3f}')
 plt.show();
+
+#Sensor Fusion
+from numpy import array, asarray
+import numpy.random as random
+from filterpy.common import Saver
+from kf_book.book_plots import plot_measurements,set_labels,plot_filter
+
+def fusion_test(wheel_sigma, ps_sigma, do_plot=True):
+    dt = 0.1
+    kf = KalmanFilter(dim_x=2, dim_z=2)
+
+    kf.F = array([[1., dt], [0., 1.]])
+    kf.H = array([[1., 0.], [1., 0.]])
+    kf.x = array([[0.], [1.]])
+    kf.Q *= array([[(dt**3)/3, (dt**2)/2],
+                   [(dt**2)/2,  dt      ]]) * 0.02
+    kf.P *= 100
+    kf.R[0, 0] = wheel_sigma**2
+    kf.R[1, 1] = ps_sigma**2 
+    s = Saver(kf)
+
+    random.seed(1123)
+    for i in range(1, 100):
+        m0 = i + randn()*wheel_sigma
+        m1 = i + randn()*ps_sigma
+        kf.predict()
+        kf.update(array([[m0], [m1]]))
+        s.save()
+    s.to_array()
+    print(f'fusion std: {np.std(s.y[:, 0]):.3f}')
+    if do_plot:
+        ts = np.arange(0.1, 10, .1)
+        plot_measurements(ts, s.z[:, 0], label='Wheel')
+        plt.plot(ts, s.z[:, 1], ls='--', label='Pos Sensor')
+        plot_filter(ts, s.x[:, 0], label='Kalman filter')
+        plt.legend(loc=4)
+        plt.ylim(0, 100)
+        set_labels(x='time (sec)', y='meters')
+        plt.show();
+
+fusion_test(1.5, 3.0)
