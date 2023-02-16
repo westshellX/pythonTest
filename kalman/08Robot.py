@@ -484,3 +484,24 @@ plt.xlabel('time')
 plt.legend(loc=4)
 plt.ylabel('distance');
 plt.show();
+
+
+np.random.seed(124)
+R = 5.
+xs, zs = simulate_acc_system(R=R, Q=Q, count=30)
+
+kf0 = SecondOrderKF(R, Q, dt=1)
+kf1 = SecondOrderKF(R, Q, dt=1)
+kf2 = SecondOrderKF(R, Q, dt=1)
+
+# Filter measurements
+fxs0, ps0, _, _ = kf0.batch_filter(zs)
+
+# filter twice more, using the state as the input
+fxs1, ps1, _, _ = kf1.batch_filter(fxs0[:, 0])
+fxs2, _, _, _ = kf2.batch_filter(fxs1[:, 0])
+
+plot_kf_output(xs, fxs0, zs, 'KF', False)
+plot_kf_output(xs, fxs1, zs, '1 iteration', False)
+plot_kf_output(xs, fxs2, zs, '2 iterations', False)
+R,Q
