@@ -505,3 +505,104 @@ plot_kf_output(xs, fxs0, zs, 'KF', False)
 plot_kf_output(xs, fxs1, zs, '1 iteration', False)
 plot_kf_output(xs, fxs2, zs, '2 iterations', False)
 R,Q
+plt.show();
+
+dt = 0.1
+wheel_sigma = 1.5
+kf = KalmanFilter(dim_x=2, dim_z=1)
+kf.F = np.array([[1., dt], [0., 1.]])
+kf.H = np.array([[1., 0.]])
+kf.x = np.array([[0.], [1.]])
+kf.Q *= 0.01
+kf.P *= 100
+kf.R[0, 0] = wheel_sigma**2
+
+np.random.seed(1123)
+nom = range(1, 100)
+zs = np.array([i + randn()*wheel_sigma for i in nom])
+xs, _, _, _ = kf.batch_filter(zs)
+ts = np.arange(0.1, 10, .1)
+
+res = nom - xs[:, 0, 0]
+print(f'std: {np.std(res):.3f}')
+
+plot_filter(ts, xs[:, 0], label='Kalman filter')
+plot_measurements(ts, zs, label='Wheel')
+set_labels(x='time (sec)', y='meters')
+plt.legend(loc=4);
+plt.show();
+
+#Sensor fusion: Different Data Rates
+def gen_sensor_data(t, ps_std, wheel_std):
+    # generate simulated sensor data
+    pos_data, vel_data = [], []
+    dt = 0.
+    for i in range(t*3):
+        dt += 1/3.
+        t_i = dt + randn() * .01 # time jitter
+        pos_data.append([t_i, t_i + randn()*ps_std])
+
+    dt = 0.    
+    for i in range(t*7):
+        dt += 1/7.
+        t_i = dt + randn() * .006 # time jitter
+        vel_data.append([t_i, 1. + randn()*wheel_std])
+    return pos_data, vel_data
+
+
+def plot_fusion(xs, ts, zs_ps, zs_wheel):
+    xs = np.array(xs)
+    plt.subplot(211)
+    plt.plot(zs_ps[:, 0], zs_ps[:, 1], ls='--', label='Pos Sensor')
+    plot_filter(xs=ts, ys=xs[:, 0], label='Kalman filter')
+    set_labels(title='Position', y='meters',)
+
+    plt.subplot(212)
+    plot_measurements(zs_wheel[:, 0], zs_wheel[:, 1],  label='Wheel')
+    plot_filter(xs=ts, ys=xs[:, 1], label='Kalman filter')
+    set_labels('Velocity', 'time (sec)', 'meters/sec')
+    
+
+def fusion_test(pos_data, vel_data, wheel_std, ps_std):
+    kf = KalmanFilter(dim_x=2, dim_z=1)
+    kf.F = np.array([[1., 1.], [0., 1.]])
+    kf.H = np.array([[1., 0.], [1., 0.]])
+    kf.x = np.array([[0.], [1.]])
+    kf.P *= 100
+
+    xs, ts = [],  []
+    
+    # copy data for plotting
+    zs_wheel = np.array(vel_data)
+    zs_ps = np.array(pos_data)
+                     
+    last_t = 0
+    while len(pos_data) > 0 and len(vel_data) > 0:
+        if pos_data[0][0] < vel_data[0][0]:
+            t, z = pos_data.pop(0)
+            dt = t - last_t
+            last_t = t
+            
+            kf.H = np.array([[1., 0.]])
+            kf.R[0,0] = ps_std**2
+        else:
+            t, z = vel_data.pop(0)
+            dt = t - last_t
+            last_t = t
+            
+            kf.H = np.array([[0., 1.]])
+            kf.R[0,0] = wheel_std**2
+
+        kf.F[0,1] = dt
+        kf.Q = Q_discrete_white_noise(2, dt=dt, var=.02)
+        kf.predict()
+        kf.update(np.array([z]))
+
+        xs.append(kf.x.T[0])
+        ts.append(t)
+    plot_fusion(xs, ts, zs_ps, zs_wheel)
+
+np.random.seed(1123)
+pos_data, vel_data = gen_sensor_data(25, 1.5, 3.0)
+fusion_test(pos_data, vel_data, 1.5, 3.0);
+plt.show();
