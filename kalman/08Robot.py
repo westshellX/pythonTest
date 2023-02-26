@@ -727,3 +727,180 @@ def track_ball_vacuum(dt):
 track_ball_vacuum(dt=1./10);
 plt.show();
 #Tracking a Ball --end
+
+from math import sqrt, exp
+
+def mph_to_mps(x):
+    return x * .447
+
+def drag_force(velocity):
+    """ Returns the force on a baseball due to air drag at
+    the specified velocity. Units are SI"""
+
+    return velocity * (0.0039 + 0.0058 / 
+            (1. + exp((velocity-35.)/5.)))
+
+v = mph_to_mps(110.)
+x, y = 0., 1.
+dt = .1
+theta = radians(35)
+
+def solve(x, y, vel, v_wind, launch_angle):
+    xs = []
+    ys = []
+    v_x = vel*cos(launch_angle)
+    v_y = vel*sin(launch_angle)
+    while y >= 0:
+        # Euler equations for x and y
+        x += v_x*dt
+        y += v_y*dt
+
+        # force due to air drag    
+        velocity = sqrt((v_x-v_wind)**2 + v_y**2)    
+        F = drag_force(velocity)
+
+        # euler's equations for vx and vy
+        v_x = v_x - F*(v_x-v_wind)*dt
+        v_y = v_y - 9.8*dt - F*v_y*dt
+        
+        xs.append(x)
+        ys.append(y)
+    
+    return xs, ys
+        
+x, y = solve(x=0, y=1, vel=v, v_wind=0, launch_angle=theta)
+p1 = plt.scatter(x, y, color='blue', label='no wind')
+
+wind = mph_to_mps(10)
+x, y = solve(x=0, y=1, vel=v, v_wind=wind, launch_angle=theta)
+p2 = plt.scatter(x, y, color='green', marker="v", 
+                 label='10mph wind')
+plt.legend(scatterpoints=1);
+plt.show();
+
+class BaseballPath:
+    def __init__(self, x0, y0, launch_angle_deg, velocity_ms, 
+                 noise=(1.0, 1.0)): 
+        """ Create 2D baseball path object  
+           (x = distance from start point in ground plane, 
+            y=height above ground)
+        
+        x0,y0            initial position
+        launch_angle_deg angle ball is travelling respective to 
+                         ground plane
+        velocity_ms      speeed of ball in meters/second
+        noise            amount of noise to add to each position
+                         in (x, y)
+        """
+        
+        omega = radians(launch_angle_deg)
+        self.v_x = velocity_ms * cos(omega)
+        self.v_y = velocity_ms * sin(omega)
+
+        self.x = x0
+        self.y = y0
+        self.noise = noise
+
+
+    def drag_force(self, velocity):
+        """ Returns the force on a baseball due to air drag at
+        the specified velocity. Units are SI
+        """
+        B_m = 0.0039 + 0.0058 / (1. + exp((velocity-35.)/5.))
+        return B_m * velocity
+
+
+    def update(self, dt, vel_wind=0.):
+        """ compute the ball position based on the specified time 
+        step and wind velocity. Returns (x, y) position tuple.
+        """
+
+        # Euler equations for x and y
+        self.x += self.v_x*dt
+        self.y += self.v_y*dt
+
+        # force due to air drag
+        v_x_wind = self.v_x - vel_wind
+        v = sqrt(v_x_wind**2 + self.v_y**2)
+        F = self.drag_force(v)
+
+        # Euler's equations for velocity
+        self.v_x = self.v_x - F*v_x_wind*dt
+        self.v_y = self.v_y - 9.81*dt - F*self.v_y*dt
+
+        return (self.x + randn()*self.noise[0], 
+                self.y + randn()*self.noise[1])
+
+x, y = 0, 1.
+
+theta = 35. # launch angle
+v0 = 50.
+dt = 1/10.   # time step
+g = np.array([[-9.8]])
+
+plt.figure()
+ball = BaseballPath(x0=x, y0=y, launch_angle_deg=theta,
+                    velocity_ms=v0, noise=[.3,.3])
+f1 = ball_kf(x, y, theta, v0, dt, r=1.)
+f2 = ball_kf(x, y, theta, v0, dt, r=10.)
+t = 0
+xs, ys = [], []
+xs2, ys2 = [], []
+
+while f1.x[2] > 0:
+    t += dt
+    x, y = ball.update(dt)
+    z = np.array([[x, y]]).T
+
+    f1.update(z)
+    f2.update(z)
+    xs.append(f1.x[0])
+    ys.append(f1.x[2])
+    xs2.append(f2.x[0])
+    ys2.append(f2.x[2])    
+    f1.predict(u=g) 
+    f2.predict(u=g)
+    
+    p1 = plt.scatter(x, y, color='r', marker='.', s=75, alpha=0.5)
+
+p2, = plt.plot(xs, ys, lw=2)
+p3, = plt.plot(xs2, ys2, lw=4)
+plt.legend([p1, p2, p3], 
+           ['Measurements', 'Filter(R=0.5)', 'Filter(R=10)'],
+           loc='best', scatterpoints=1);
+plt.show();
+
+def plot_ball_with_q(q, r=1., noise=0.3):
+    x, y = 0., 1.
+    theta = 35. # launch angle
+    v0 = 50.
+    dt = 1/10.   # time step
+    g = np.array([[-9.8]])
+
+    ball = BaseballPath(x0=x, 
+                        y0=y, 
+                        launch_angle_deg=theta, 
+                        velocity_ms=v0, 
+                        noise=[noise,noise])
+    f1 = ball_kf(x, y, theta, v0, dt, r=r, q=q)
+    t = 0
+    xs, ys = [], []
+
+    while f1.x[2] > 0:
+        t += dt
+        x, y = ball.update(dt)
+        z = np.array([[x, y]]).T
+
+        f1.update(z)
+        xs.append(f1.x[0])
+        ys.append(f1.x[2]) 
+        f1.predict(u=g) 
+
+        p1 = plt.scatter(x, y, c='r', marker='.', s=75, alpha=0.5)
+
+    p2, = plt.plot(xs, ys, lw=2, color='b')
+    plt.legend([p1, p2], ['Measurements', 'Kalman filter'])
+    plt.show()
+
+plot_ball_with_q(0.01)
+plot_ball_with_q(0.1)
