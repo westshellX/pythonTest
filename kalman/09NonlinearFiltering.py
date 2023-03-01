@@ -95,3 +95,14 @@ def g3(x):
 data = normal(loc=1, scale=1, size=500000)
 plot_nonlinear_func(data, g3);
 plt.show();
+
+import kf_book.nonlinear_internal as nonlinear_internal
+
+nonlinear_internal.plot1();
+plt.show();
+nonlinear_internal.plot2()
+plt.show();
+nonlinear_internal.plot3()
+plt.show();
+nonlinear_internal.plot4()
+plt.show();
