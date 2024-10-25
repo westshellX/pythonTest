@@ -143,7 +143,10 @@ def update(frame):
 
     ln.set_data(xdata,ydata)
     return ln,
-    
+
+'''
+初衷：接受船舶的动态数据，在二维平面输出，便于插值
+'''  
 if __name__ == "__main__":
 
     fig,ax=plt.subplots()

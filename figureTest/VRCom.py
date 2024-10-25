@@ -1,9 +1,11 @@
 import ctypes
 #匹配数据结构
-'''typedef struct VRCustomCmdData
+'''
+typedef struct VRCustomCmdData
 {
 	CHAR	szCmd[256];
-}VR_CUSTOM_CMDDATA,*LPVR_CUSTOM_CMDDATA;'''
+}VR_CUSTOM_CMDDATA,*LPVR_CUSTOM_CMDDATA;
+'''
 
 
 class VR_CUSTOM_CMDDATA(ctypes.Structure):
@@ -39,7 +41,7 @@ class DynamicShipBase(ctypes.Structure):
         ('vpitch',ctypes.c_double)
     ]
 #加载VRCom.dll
-VRCom=ctypes.cdll.LoadLibrary('.\VRCom.dll')
+VRCom=ctypes.cdll.LoadLibrary('..\VRCom.dll')
 
 #匹配常用函数名
 AutoAll_RunDll=VRCom.AutoAll_RunDll
