@@ -7,6 +7,7 @@ import numpy as np
 import time
 from VRCom import *
 import ctypes
+import itertools
 
 #最大船舶数量
 SHIPMAX=200
@@ -34,9 +35,12 @@ def init():
     
 
     # plt.show()
-    ax.set_xlim(0,2*np.pi)
+    ax.set_xlim(0,1)
     ax.set_ylim(-1,1)
-    return ln,
+    del xdata[:]
+    del ydata[:]
+    line.set_data(xdata,ydata)
+    return line,
     
 def DoNetStrFromShipMachine(szCmd):
         #改变编码方式，转换成便于理解的字符串
@@ -97,12 +101,21 @@ def DoNetStrFromShipMachine(szCmd):
 
 #数据产生方式
 def data_gen():
+    for cnt in itertools.count():
+        t=cnt/10
+        yield t,np.sin(2*np.pi*t)*np.exp(-t/10.)
     yield 1,1
     
-def update(frame):
-    xdata.append(frame)
-    ydata.append(np.sin(frame))
+def run(frame):
+    t,y=frame
+    xdata.append(t)
+    ydata.append(y)
 
+    xmin,xmax=ax.get_xlim()
+    if t>=xmax:
+        ax.set_xlim(xmin,2*xmax)
+        ax.figure.canvas.draw()
+    line.set_data(xdata,ydata)
     cmdStr=VR_CUSTOM_CMDDATA()
     while PopupCommandStrSvr2Clt(cmdStr):
         #显示出来便于观察
@@ -141,8 +154,8 @@ def update(frame):
     #     #print('No shipData received!')
     #     i=0
 
-    ln.set_data(xdata,ydata)
-    return ln,
+    #line.set_data(xdata,ydata)
+    return line,
 
 '''
 初衷：接受船舶的动态数据，在二维平面输出，便于插值
@@ -151,7 +164,7 @@ if __name__ == "__main__":
 
     fig,ax=plt.subplots()
     fig.canvas.mpl_connect('close_event',on_close)
-    ln,=ax.plot([],[],'ro')
+    line,=ax.plot([],[],'ro')
     ax.grid()
     xdata=[]
     ydata=[]
@@ -160,5 +173,5 @@ if __name__ == "__main__":
     InitVRCom()
     CreateClient()
 
-    ani=animation.FuncAnimation(fig,update,frames=np.linspace(0,2*np.pi,50),init_func=init,interval=30,blit=True)
+    ani=animation.FuncAnimation(fig,run,data_gen,init_func=init,interval=100,blit=True)
     plt.show()
