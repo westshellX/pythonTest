@@ -8,6 +8,7 @@ import time
 from VRCom import *
 import ctypes
 import itertools
+import sys
 
 #最大船舶数量
 SHIPMAX=200
@@ -37,10 +38,10 @@ def init():
     # plt.show()
     ax.set_xlim(0,1)
     ax.set_ylim(-1,1)
-    del xdata[:]
-    del ydata[:]
-    line.set_data(xdata,ydata)
-    return line,
+    #del xdata[:]
+    #del ydata[:]
+    #lines[1].set_data(xdata,ydata)
+    return lines1,
     
 def DoNetStrFromShipMachine(szCmd):
         #改变编码方式，转换成便于理解的字符串
@@ -104,18 +105,15 @@ def data_gen():
     for cnt in itertools.count():
         t=cnt/10
         yield t,np.sin(2*np.pi*t)*np.exp(-t/10.)
-    yield 1,1
     
-def run(frame):
-    t,y=frame
-    xdata.append(t)
-    ydata.append(y)
+def run(data):
+    t,y=data
+    
+    xdataMin=sys.float_info.max
+    xdataMax=-sys.float_info.max
+    ydataMin=sys.float_info.max
+    ydataMax=-sys.float_info.max
 
-    xmin,xmax=ax.get_xlim()
-    if t>=xmax:
-        ax.set_xlim(xmin,2*xmax)
-        ax.figure.canvas.draw()
-    line.set_data(xdata,ydata)
     cmdStr=VR_CUSTOM_CMDDATA()
     while PopupCommandStrSvr2Clt(cmdStr):
         #显示出来便于观察
@@ -132,22 +130,40 @@ def run(frame):
                 
         #转化成秒
     timeSecond=float(lpElapsedTime.value/1000.0)
-    if(timeSecond<100.0 and m_nVSLCnt.value>0):
-            print(m_nVSLCnt.value)
-            for shipIndex in range(m_nVSLCnt.value):
+    if(m_nVSLCnt.value>0):
+            for shipIndex in range(0,m_nVSLCnt.value,1):
                 if(m_pVSL[shipIndex].nMMSI>0 and m_pVSL[shipIndex].nMMSI<SHIPMAX):
                     isOS=False
                     #print('shipIndex={} nMMSI={}'.format(shipIndex,m_pVSL[shipIndex].nMMSI))
-                    if(m_pVSL[shipIndex].nMMSI==osShipID):
-                        isOS=True
+                    #if(m_pVSL[shipIndex].nMMSI==osShipID):
+                    isOS=True
 
-                        #添加位置坐标值
-                        xdata.append(m_pVSL[shipIndex].x)
-                        ydata.append(m_pVSL[shipIndex].y)
-                                
-                        shipStateInfoStr='%d,%f,%f,%f'%(m_pVSL[shipIndex].nMMSI,m_pVSL[shipIndex].x,m_pVSL[shipIndex].y,m_pVSL[shipIndex].c)
+                    #添加位置坐标值
+                    print(shipIndex)
+                    print(m_pVSL[shipIndex].x)
+                    print(xdata)
+                    print(xdata[shipIndex])
+                    xdata[shipIndex].append(m_pVSL[shipIndex].x)
+                    print(xdata)
+                    ydata[shipIndex].append(m_pVSL[shipIndex].y)
+                    if(xdataMin>m_pVSL[shipIndex].x):
+                            xdataMin=m_pVSL[shipIndex].x
+                    if(xdataMax<m_pVSL[shipIndex].x):
+                            xdataMax=m_pVSL[shipIndex].x
+
+                    if(ydataMin>m_pVSL[shipIndex].y):
+                            ydataMin=m_pVSL[shipIndex].y
+                    if(ydataMax<m_pVSL[shipIndex].y):
+                            ydataMax=m_pVSL[shipIndex].y
+
+                    shipStateInfoStr='%d,%f,%f,%f,x:[%f,%f],y:[%f,%f]'%(m_pVSL[shipIndex].nMMSI,m_pVSL[shipIndex].x,m_pVSL[shipIndex].y,m_pVSL[shipIndex].c,xdataMin,xdataMax,ydataMin,ydataMax)
                             # self.text_ctrl_dynamicShipData.AppendText(shipStateInfoStr)
-                        print(shipStateInfoStr)
+                    print(shipStateInfoStr)
+                    if(m_pVSL[shipIndex].nMMSI==1):
+                         lines1.set_data(xdata[1],ydata[1])
+
+                    lines[shipIndex].set_data(xdata[shipIndex],ydata[shipIndex]) 
+                    #lines[shipIndex].set_data(xdata,ydata)
     UnlockDynamShipList()
     
     # elif(isShipMachineRun==False):
@@ -155,7 +171,17 @@ def run(frame):
     #     i=0
 
     #line.set_data(xdata,ydata)
-    return line,
+
+
+    xmin,xmax=ax.get_xlim()
+    ymin,ymax=ax.get_ylim()
+    if xmax<xdataMax or xmin>xdataMin:
+        ax.set_xlim(xdataMin,xdataMax)
+        ax.figure.canvas.draw()
+    if(ymax<ydataMax or ymin>ydataMin):
+        ax.set_ylim(ydataMin,ydataMax)
+        ax.figure.canvas.draw()
+    return lines1,
 
 '''
 初衷：接受船舶的动态数据，在二维平面输出，便于插值
@@ -164,11 +190,14 @@ if __name__ == "__main__":
 
     fig,ax=plt.subplots()
     fig.canvas.mpl_connect('close_event',on_close)
-    line,=ax.plot([],[],'ro')
-    ax.grid()
-    xdata=[]
-    ydata=[]
+    lines1,=ax.plot([], [],'-')
+    lines2,=ax.plot([], [],'--')
+    lines3,=ax.plot([], [],'-.')
     
+    lines=[ax.plot([], [],':')[0] for i in range(0,SHIPMAX,1)]     
+    ax.grid()
+    xdata=[[] for _ in range(SHIPMAX)]
+    ydata=[[] for _ in range(SHIPMAX)]
     #运行测试
     InitVRCom()
     CreateClient()
